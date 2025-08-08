@@ -1,4 +1,4 @@
-import os,re
+import os, re
 from fastapi import FastAPI, Query, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -47,12 +47,12 @@ def parse_query_for_filters(query: str):
     price_max, price_min, min_rating = None, None, None
 
     # Look for "less than X" or "under X" price
-    match = re.search(r'(?:less |under)\s*\$?(\d+)', query, re.IGNORECASE)
+    match = re.search(r'(?:less than|less|under)\s*\$?(\d+)', query, re.IGNORECASE)
     if match:
         price_max = float(match.group(1))
 
     # Look for "more than X" or "over X" price
-    match = re.search(r'(?:more |over)\s*\$?(\d+)', query, re.IGNORECASE)
+    match = re.search(r'(?:more than|more|upper|over)\s*\$?(\d+)', query, re.IGNORECASE)
     if match:
         price_min = float(match.group(1))
 
@@ -110,4 +110,3 @@ def smart_search(query: str = Query(..., description="Search query"), category: 
     results.sort(key=lambda x: x["score"], reverse=True)
 
     return results[:5]
-
