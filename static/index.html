@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Simple E-commerce Search</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+    h2 {
+      text-align: center;
+    }
+    .controls {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    input[type="text"], select {
+      padding: 8px;
+      font-size: 1rem;
+      flex: 1 1 200px;
+      min-width: 150px;
+    }
+    button {
+      padding: 8px 16px;
+      font-size: 1rem;
+      cursor: pointer;
+      background-color: #007bff;
+      border: none;
+      color: white;
+      border-radius: 4px;
+      flex: 1 1 100px;
+      min-width: 100px;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      padding: 10px;
+      border-bottom: 1px solid #ddd;
+    }
+    .product-name {
+      font-weight: bold;
+      font-size: 1.1rem;
+    }
+    .product-score {
+      color: green;
+      font-size: 0.9rem;
+      margin-left: 8px;
+    }
+    .product-details {
+      font-size: 0.9rem;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+  <h2>Product Catalog - Smart Search</h2>
+  <div class="controls">
+    <input id="searchInput" type="text" placeholder="Search products..." />
+    <select id="categoryFilter">
+      <option value="">All Categories</option>
+      <option value="Shoes">Shoes</option>
+      <option value="Clothing">Clothing</option>
+      <option value="Accessories">Accessories</option>
+      <option value="Electronics">Electronics</option>
+    </select>
+    <button onclick="searchProducts()">Search</button>
+  </div>
+  <ul id="results"></ul>
+
+  <script>
+    async function searchProducts() {
+      const query = document.getElementById("searchInput").value.trim();
+      const category = document.getElementById("categoryFilter").value;
+      const resultsList = document.getElementById("results");
+
+      if (!query) {
+        // Clear results if search is empty
+        resultsList.innerHTML = "";
+        return;
+      }
+
+      resultsList.innerHTML = "<li>Loading...</li>";
+
+      try {
+        const response = await fetch(`http://127.0.0.1:8000/search?query=${encodeURIComponent(query)}`);
+        if (!response.ok) throw new Error("API error");
+        let results = await response.json();
+
+        // Apply category filter
+        if (category) {
+          results = results.filter(p => p.category.toLowerCase() === category.toLowerCase());
+        }
+
+        if (results.length === 0) {
+          resultsList.innerHTML = "<li>No results found.</li>";
+          return;
+        }
+
+        resultsList.innerHTML = "";
+        results.forEach(prod => {
+          const li = document.createElement("li");
+          li.innerHTML = `
+            <span class="product-name">${prod.name}</span>
+            <span class="product-score">Score: ${prod.score.toFixed(2)}</span>
+            <div class="product-details">
+              Category: ${prod.category} | Price: $${prod.price} | Rating: ${prod.rating}<br/>
+              ${prod.description}
+            </div>
+          `;
+          resultsList.appendChild(li);
+        });
+      } catch (err) {
+        resultsList.innerHTML = "<li>Error fetching results.</li>";
+        console.error(err);
+      }
+    }
+
+    // Trigger search automatically while typing
+    document.getElementById("searchInput").addEventListener("input", searchProducts);
+
+    // Trigger search when category changes
+    document.getElementById("categoryFilter").addEventListener("change", searchProducts);
+  </script>
+</body>
+</html>
